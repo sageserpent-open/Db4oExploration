@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Config;
+using Db4objects.Db4o.IO;
 using Db4objects.Db4o.TA;
 
 namespace Db4oExploration
@@ -21,6 +22,9 @@ namespace Db4oExploration
             readingConfiguration.Common.Add(new TransparentActivationSupport());
 
             var writingConfiguration = Db4oEmbedded.NewConfiguration();
+            IStorage fileStorage = new FileStorage();
+            IStorage cachingStorage = new CachingStorage(fileStorage, 128, 16384);
+            writingConfiguration.File.Storage = cachingStorage;
             writingConfiguration.Common.ObjectClass(typeof (Item)).CascadeOnUpdate(true);
             writingConfiguration.Common.ObjectClass(typeof (Container)).CascadeOnUpdate(true);
 

@@ -9,7 +9,10 @@ namespace Db4oExploration
 {
     public class Container
     {
-        public IEnumerable<Item> Items { get; set; }
+        public IEnumerable<Item> Items
+        {
+            get { return _items; }
+        }
 
         public string Name { get; set; }
 
@@ -74,7 +77,7 @@ namespace Db4oExploration
 
             var config = Db4oEmbedded.NewConfiguration();
             config.Common.ObjectClass(typeof (Item)).CascadeOnUpdate(true);
-            config.Common.ObjectClass(typeof(Container)).CascadeOnUpdate(true);
+            config.Common.ObjectClass(typeof (Container)).CascadeOnUpdate(true);
 
             using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
             {
@@ -87,6 +90,28 @@ namespace Db4oExploration
                 itemTwo.Container = containerTwo;
 
                 objectContainer.Store(itemTwo);
+            }
+
+            using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
+            {
+                var allContainers = objectContainer.Query<Container>();
+
+                foreach (var container in allContainers)
+                {
+                    Console.WriteLine("Container: {0}", container.Name);
+
+                    foreach (var item in container.Items)
+                    {
+                        Console.WriteLine("Contained item: {0}, {1}", item.Name, item.GetHashCode());
+                    }
+                }
+
+                var allItems = objectContainer.Query<Item>();
+
+                foreach (var item in allItems)
+                {
+                    Console.WriteLine("Item: {0}, {1}", item.Name, item.GetHashCode());
+                }
             }
 
             Console.WriteLine("Done!");

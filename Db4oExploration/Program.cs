@@ -31,7 +31,8 @@ namespace Db4oExploration
 
                     foreach (var item in container.Items)
                     {
-                        Console.WriteLine("Contained item: {0}, {1}", item.Name, item.GetHashCode());
+                        Console.WriteLine("Contained item: {0}, {1}, contained by: {2}", item.Name, item.GetHashCode(),
+                            item.Container.Name);
                     }
                 }
 
@@ -39,7 +40,8 @@ namespace Db4oExploration
 
                 foreach (var item in allItems)
                 {
-                    Console.WriteLine("Item: {0}, {1}", item.Name, item.GetHashCode());
+                    Console.WriteLine("Item: {0}, {1}, contained by: {2}", item.Name, item.GetHashCode(),
+                        item.Container.Name);
                 }
             }
 
@@ -53,15 +55,32 @@ namespace Db4oExploration
             var oddIndex = 1 + evenIndex;
 
 
-            var containerOne = new Container {Name = String.Format("Fred_{0}", evenIndex)};
+            var fred = new Container {Name = String.Format("Fred_{0}", evenIndex)};
 
             var itemOne = new Item {Name = String.Format("Odd_{0}", oddIndex)};
 
             var itemTwo = new Item {Name = String.Format("Even_{0}", evenIndex)};
 
-            itemOne.Container = containerOne;
+            itemOne.Container = fred;
 
-            itemTwo.Container = containerOne;
+            itemTwo.Container = fred;
+
+            var ethel = new Container {Name = String.Format("Ethel_{0}", evenIndex)};
+
+            var oldContainer = itemTwo.Container;
+
+            itemTwo.Container = ethel;
+
+            if (oldContainer != fred)
+            {
+                throw new Exception("No!");
+            }
+
+            if (oldContainer.Items.Count() != 1)
+            {
+                throw new Exception("No");
+            }
+
 
             var config = Db4oEmbedded.NewConfiguration();
             config.Common.ObjectClass(typeof (Item)).CascadeOnUpdate(true);
@@ -71,16 +90,9 @@ namespace Db4oExploration
             {
                 objectContainer.Store(itemOne);
 
-                objectContainer.Commit();
-
-                var containerTwo = new Container {Name = String.Format("Ethel_{0}", evenIndex)};
-
-                var oldContainer = itemTwo.Container;
-
-                itemTwo.Container = containerTwo;
-
                 objectContainer.Store(itemTwo);
-                objectContainer.Store(oldContainer);
+
+                objectContainer.Commit();
             }
         }
     }

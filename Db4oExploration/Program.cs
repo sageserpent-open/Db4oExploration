@@ -79,8 +79,6 @@ namespace Db4oExploration
             using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
             {
                 objectContainer.Store(itemOne);
-                objectContainer.Store(itemTwo);
-                objectContainer.Store(containerOne);
 
                 objectContainer.Commit();
 
@@ -88,9 +86,7 @@ namespace Db4oExploration
 
                 itemTwo.Container = containerTwo;
 
-                objectContainer.Store(itemOne);
                 objectContainer.Store(itemTwo);
-                objectContainer.Store(containerOne);
             }
 
             Console.WriteLine("Done!");

@@ -11,6 +11,8 @@ namespace Db4oExploration
     {
         public IEnumerable<Item> Items { get; set; }
 
+        public string Name { get; set; }
+
         internal void Add(Item item)
         {
             _items.Add(item);
@@ -26,6 +28,8 @@ namespace Db4oExploration
 
     public class Item
     {
+        public string Name { get; set; }
+
         public Container Container
         {
             get { throw new NotImplementedException(); }
@@ -58,18 +62,19 @@ namespace Db4oExploration
 
             File.Delete(databaseFileName);
 
-            var containerOne = new Container();
+            var containerOne = new Container {Name = "Fred"};
 
-            var itemOne = new Item();
+            var itemOne = new Item {Name = "One"};
 
-            var itemTwo = new Item();
+            var itemTwo = new Item {Name = "Two"};
 
             itemOne.Container = containerOne;
 
             itemTwo.Container = containerOne;
 
             var config = Db4oEmbedded.NewConfiguration();
-            config.Common.ObjectClass(typeof(Item)).CascadeOnUpdate(true);
+            config.Common.ObjectClass(typeof (Item)).CascadeOnUpdate(true);
+            config.Common.ObjectClass(typeof(Container)).CascadeOnUpdate(true);
 
             using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
             {
@@ -78,9 +83,11 @@ namespace Db4oExploration
 
             using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
             {
-                var containerTwo = new Container();
+                var containerTwo = new Container {Name = "Ethel"};
 
                 itemTwo.Container = containerTwo;
+
+                objectContainer.Store(itemTwo);
             }
 
             Console.WriteLine("Done!");

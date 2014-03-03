@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.IO;
+using Db4objects.Db4o;
+using Db4objects.Db4o.Config;
 
 namespace Db4oExploration
 {
@@ -51,6 +52,12 @@ namespace Db4oExploration
     {
         private static void Main(string[] args)
         {
+            var applicationWorkingDirectory = Environment.CurrentDirectory;
+
+            var databaseFileName = Path.Combine(applicationWorkingDirectory, "Peabody.db4o");
+
+            File.Delete(databaseFileName);
+
             var containerOne = new Container();
 
             var itemOne = new Item();
@@ -61,9 +68,20 @@ namespace Db4oExploration
 
             itemTwo.Container = containerOne;
 
-            var containerTwo = new Container();
+            var config = Db4oEmbedded.NewConfiguration();
+            config.Common.ObjectClass(typeof(Item)).CascadeOnUpdate(true);
 
-            itemTwo.Container = containerTwo;
+            using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
+            {
+                objectContainer.Store(itemOne);
+            }
+
+            using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
+            {
+                var containerTwo = new Container();
+
+                itemTwo.Container = containerTwo;
+            }
 
             Console.WriteLine("Done!");
         }

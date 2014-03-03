@@ -17,17 +17,23 @@ namespace Db4oExploration
 
             File.Delete(databaseFileName);
 
-            var config = Db4oEmbedded.NewConfiguration();
-            config.Common.Add(new TransparentActivationSupport());
+            var readingConfiguration = Db4oEmbedded.NewConfiguration();
+            readingConfiguration.Common.Add(new TransparentActivationSupport());
 
+            var writingConfiguration = Db4oEmbedded.NewConfiguration();
+            writingConfiguration.Common.ObjectClass(typeof (Item)).CascadeOnUpdate(true);
+            writingConfiguration.Common.ObjectClass(typeof (Container)).CascadeOnUpdate(true);
 
-            foreach (var seriesNumber in Enumerable.Range(0, 5))
+            using (var objectContainer = Db4oEmbedded.OpenFile(writingConfiguration, databaseFileName))
             {
-                MakeAndStoreTwoItemsInTwoContainers(databaseFileName, seriesNumber);
+                foreach (var seriesNumber in Enumerable.Range(0, 1000))
+                {
+                    MakeAndStoreTwoItemsInTwoContainers(objectContainer, seriesNumber);
+                }
             }
 
 
-            using (var objectContainer = Db4oEmbedded.OpenFile(config, databaseFileName))
+            using (var objectContainer = Db4oEmbedded.OpenFile(readingConfiguration, databaseFileName))
             {
                 var allContainers = objectContainer.Query<Container>();
 
@@ -54,7 +60,8 @@ namespace Db4oExploration
             Console.WriteLine("Done!");
         }
 
-        private static void MakeAndStoreTwoItemsInTwoContainers(string databaseFileName, int seriesNumber)
+        private static void MakeAndStoreTwoItemsInTwoContainers(IEmbeddedObjectContainer objectContainer,
+            int seriesNumber)
         {
             var evenIndex = 2 * seriesNumber;
 
@@ -72,11 +79,6 @@ namespace Db4oExploration
             itemTwo.Container = fred;
 
 
-            var config = Db4oEmbedded.NewConfiguration();
-            config.Common.ObjectClass(typeof (Item)).CascadeOnUpdate(true);
-            config.Common.ObjectClass(typeof (Container)).CascadeOnUpdate(true);
-
-            using (var objectContainer = Db4oEmbedded.OpenFile(config, databaseFileName))
             {
                 objectContainer.Store(itemOne);
 

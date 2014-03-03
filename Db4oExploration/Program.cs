@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using Db4objects.Db4o;
+using Db4objects.Db4o.Config;
+using Db4objects.Db4o.TA;
 
 namespace Db4oExploration
 {
@@ -15,13 +17,17 @@ namespace Db4oExploration
 
             File.Delete(databaseFileName);
 
+            var config = Db4oEmbedded.NewConfiguration();
+            config.Common.Add(new TransparentActivationSupport());
+
+
             foreach (var seriesNumber in Enumerable.Range(0, 5))
             {
                 MakeAndStoreTwoItemsInTwoContainers(databaseFileName, seriesNumber);
             }
 
 
-            using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
+            using (var objectContainer = Db4oEmbedded.OpenFile(config, databaseFileName))
             {
                 var allContainers = objectContainer.Query<Container>();
 
@@ -65,34 +71,36 @@ namespace Db4oExploration
 
             itemTwo.Container = fred;
 
-            var ethel = new Container {Name = String.Format("Ethel_{0}", evenIndex)};
-
-            var oldContainer = itemTwo.Container;
-
-            itemTwo.Container = ethel;
-
-            if (oldContainer != fred)
-            {
-                throw new Exception("No!");
-            }
-
-            if (oldContainer.Items.Count() != 1)
-            {
-                throw new Exception("No");
-            }
-
 
             var config = Db4oEmbedded.NewConfiguration();
             config.Common.ObjectClass(typeof (Item)).CascadeOnUpdate(true);
             config.Common.ObjectClass(typeof (Container)).CascadeOnUpdate(true);
 
-            using (var objectContainer = Db4oEmbedded.OpenFile(databaseFileName))
+            using (var objectContainer = Db4oEmbedded.OpenFile(config, databaseFileName))
             {
                 objectContainer.Store(itemOne);
 
-                objectContainer.Store(itemTwo);
-
                 objectContainer.Commit();
+
+                var ethel = new Container {Name = String.Format("Ethel_{0}", evenIndex)};
+
+                var oldContainer = itemTwo.Container;
+
+                itemTwo.Container = ethel;
+
+                if (oldContainer != fred)
+                {
+                    throw new Exception("No!");
+                }
+
+                if (oldContainer.Items.Count() != 1)
+                {
+                    throw new Exception("No");
+                }
+
+
+                objectContainer.Store(oldContainer);
+                objectContainer.Store(itemTwo);
             }
         }
     }
